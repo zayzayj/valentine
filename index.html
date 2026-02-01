@@ -3,163 +3,148 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Valentine?</title>
+  <title>Valentines?</title>
   <style>
-    :root {
-      --yes: #22c55e;
-      --no: #ef4444;
-      --text: #111827;
-      --border: #e5e7eb;
+    :root{
+      --yes:#22c55e;
+      --no:#ef4444;
+      --border:#e5e7eb;
+      --text:#111827;
     }
-
     body{
       margin:0;
       height:100vh;
       display:flex;
       align-items:center;
       justify-content:center;
-      background:#ffffff;
+      background:#fff;
       font-family: Arial, sans-serif;
-      color: var(--text);
+      color:var(--text);
     }
-
     .card{
-      width:min(520px, 92vw);
-      height:min(420px, 70vh);
+      width:min(560px, 92vw);
       border:1px solid var(--border);
-      border-radius:6px;
-      display:flex;
-      align-items:center;
-      justify-content:center;
-      flex-direction:column;
-      gap:18px;
+      border-radius:10px;
+      padding:24px 18px;
+      text-align:center;
     }
-
-    .question{
+    .q{
+      margin:10px 0 16px;
       font-size:18px;
       font-weight:400;
-      margin:0;
     }
-
-    .arena{
-      position:relative;
-      width:260px;
-      height:90px;
+    .gif{
+      width:160px;
+      height:auto;
+      border-radius:10px;
+      display:block;
+      margin:0 auto 8px;
     }
-
+    .btnRow{
+      display:flex;
+      gap:14px;
+      justify-content:center;
+      align-items:center;
+      margin-top:8px;
+      min-height:70px;
+    }
     button{
-      font-size:12px;
-      padding:8px 16px;
-      border-radius:3px;
       border:1px solid #00000022;
+      border-radius:6px;
+      padding:10px 16px;
+      font-size:14px;
       cursor:pointer;
       user-select:none;
-      -webkit-tap-highlight-color: transparent;
+      -webkit-tap-highlight-color:transparent;
+      transform-origin:center;
+      transition: transform 120ms ease;
     }
-
     #yes{
-      background: var(--yes);
+      background:var(--yes);
       color:#fff;
-      position:absolute;
-      left:40px;
-      top:28px;
       transform: scale(1);
-      transform-origin: center;
     }
-
     #no{
-      background: var(--no);
+      background:var(--no);
       color:#fff;
-      position:absolute;
-      right:40px;
-      top:28px;
+      transform: scale(1);
     }
-
     .hint{
+      margin:14px 0 0;
       font-size:12px;
       color:#6b7280;
-      margin:0;
     }
   </style>
 </head>
 <body>
   <div class="card">
-    <p class="question">Will you be my Valentine Snotty?</p>
+    <!-- Bear GIF (upload as bear.gif in your repo) -->
+    <img class="gif" src="bear.gif" alt="bear gif" />
 
-    <div class="arena" id="arena">
+    <p class="q">hey so… would you like to be my valentines snotty? 🙈</p>
+
+    <div class="btnRow">
       <button id="yes">YES</button>
-      <button id="no">NO</button>
+      <button id="no">no</button>
     </div>
 
-    <p class="hint">(try pressing NO 😭)</p>
+    <p class="hint">go on then… choose 😭</p>
   </div>
 
   <script>
     const yesBtn = document.getElementById("yes");
-    const noBtn = document.getElementById("no");
-    const arena = document.getElementById("arena");
+    const noBtn  = document.getElementById("no");
 
-    // How many times they've tried to click NO
-    let noTries = 0;
+    // NO text sequence you asked for
+    const noTexts = [
+      "no",
+      "are you sure",
+      "positive?",
+      "certain?",
+      "please pretty",
+      "press yes"
+    ];
 
-    // TikTok-ish growth curve for YES
-    const yesScales = [1, 1.25, 1.55, 1.9, 2.35]; // after 0..4 tries
+    // Each NO click makes NO smaller and YES bigger
+    // (6 states because you have 6 texts)
+    const noScales  = [1, 0.90, 0.78, 0.64, 0.48, 0.22];
+    const yesScales = [1, 1.18, 1.40, 1.70, 2.10, 2.65];
 
-    function setYesSize() {
-      const scale = yesScales[Math.min(noTries, yesScales.length - 1)];
-      yesBtn.style.transform = `scale(${scale})`;
-    }
+    let step = 0;
 
-    function moveNoSomewhere() {
-      const pad = 6;
+    function applySizes(){
+      const i = Math.min(step, noTexts.length - 1);
+      noBtn.textContent = noTexts[i];
+      noBtn.style.transform  = `scale(${noScales[i]})`;
+      yesBtn.style.transform = `scale(${yesScales[i]})`;
 
-      const a = arena.getBoundingClientRect();
-      const b = noBtn.getBoundingClientRect();
-
-      const maxX = a.width - b.width - pad;
-      const maxY = a.height - b.height - pad;
-
-      const x = Math.floor(Math.random() * Math.max(0, maxX));
-      const y = Math.floor(Math.random() * Math.max(0, maxY));
-
-      noBtn.style.left = x + "px";
-      noBtn.style.top = y + "px";
-      noBtn.style.right = "auto";
-    }
-
-    function onTryNo(e) {
-      // Stop actual click on mobile
-      if (e) e.preventDefault();
-
-      noTries += 1;
-      setYesSize();
-
-      if (noTries >= 4) {
-        // After 4 tries: NO disappears (like TikTok)
-        noBtn.style.display = "none";
-        return;
+      // Make the last NO state tiny and a bit harder to hit (but still clickable)
+      if (i === noTexts.length - 1) {
+        noBtn.style.padding = "6px 10px";
+        noBtn.style.fontSize = "11px";
       }
-
-      // Otherwise NO runs away
-      moveNoSomewhere();
     }
 
-    // Desktop behaviour: moves away when cursor gets close
-    noBtn.addEventListener("mouseenter", onTryNo);
+    noBtn.addEventListener("click", (e) => {
+      e.preventDefault();
+      if (step < noTexts.length - 1) step++;
+      applySizes();
+    });
 
-    // Mobile behaviour: moves away when they try to tap
-    noBtn.addEventListener("touchstart", onTryNo, { passive: false });
+    // Mobile tap friendliness
+    noBtn.addEventListener("touchstart", (e) => {
+      // Let touch also count as a click
+      // (prevents weird double behaviour on some phones)
+      e.preventDefault();
+      if (step < noTexts.length - 1) step++;
+      applySizes();
+    }, { passive: false });
 
-    // Also handle actual click just in case
-    noBtn.addEventListener("click", onTryNo);
-
-    // YES goes to the end page
     yesBtn.addEventListener("click", () => {
       window.location.href = "yes.html";
     });
 
-    // initial
-    setYesSize();
+    applySizes();
   </script>
 </body>
 </html>
